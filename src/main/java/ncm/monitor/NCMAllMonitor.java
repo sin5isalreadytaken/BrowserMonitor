@@ -128,9 +128,9 @@ public class NCMAllMonitor extends NCMMonitor<NCMAllModel> {
             }
         }
         ncmService.insert(ts);
-        logger.info("[getContent] ncmModelList:{}", ts);
+        logger.info("[handle] ncmModelList:{}", ts);
         if (ts.size() < 30) {
-            logger.info("[getContent] reopen browser while ncmModelList.size:{}", ts.size());
+            logger.info("[handle] reopen browser while ncmModelList.size:{}", ts.size());
             driver = null;
             ready = false;
         }

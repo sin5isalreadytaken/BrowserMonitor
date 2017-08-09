@@ -1,34 +1,47 @@
 package ncm.monitor;
 
+import ncm.constant.NCMConstant;
 import ncm.model.NCMCommentModel;
+import ncm.service.NCMCommentService;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+@Service
 public class NCMSongMonitor extends NCMMonitor<NCMCommentModel>{
     private Logger logger = LoggerFactory.getLogger(getClass());
     private static final String prefix = "http://music.163.com/#/song?id=";
 
     private List<NCMCommentModel> ncmModelList;
-    private List<String> songIds;
 
-    public NCMSongMonitor(List<String> songIds) {
-        this.songIds = songIds;
+    private NCMCommentService ncmService;
+    @Autowired
+
+    public NCMSongMonitor(NCMCommentService ncmService)
+    {
+        this.ncmService = ncmService;
     }
 
     @Override
     protected void getContent(Date date) {
-        int all = 0;
-        for (String songId:
-             songIds) {
+        while (true) {
+            String songId = null;
+            try {
+                songId = NCMConstant.songIds.take();
+            } catch (InterruptedException e) {
+                logger.info("songId == null");
+                continue;
+            }
             url = prefix + songId;
-            logger.info("[getContent] NO.{} of {}url:{}", ++all, songIds.size(), url);
+            logger.info("[getContent] url:{}", url);
             refresh();
             for (int i = 0; i < retry && (!ready || driver == null); i++) {
                 ready = loginAndJump(false);
@@ -53,13 +66,13 @@ public class NCMSongMonitor extends NCMMonitor<NCMCommentModel>{
                 if (cntWraps != null) {
                     for (WebElement cntWrap :
                             cntWraps) {
-                        logger.info("[getContent] NO.{} of {}url:{}, line:{} of all:{}",  all, songIds.size(), url, ++count, cntWraps.size());
+                        logger.info("[getContent] url:{}, line:{} of all:{}", url, ++count, cntWraps.size());
                         WebElement line = waitForElement(cntWrap, By.cssSelector("div.cnt.f-brk"));
                         WebElement a = waitForElement(line, By.cssSelector("a"));
                         String userId = a.getAttribute("href").split("=")[1];
                         if (userId.equals(user)) {
                             NCMCommentModel ncmModel = new NCMCommentModel();
-                            WebElement upstairs = waitForElement(cntWrap, By.cssSelector("div.que.f-brk.f-pr.s-fc3"), 3 * 1000);
+                            WebElement upstairs = waitForElement(cntWrap, By.cssSelector("div.que.f-brk.f-pr.s-fc3"), 1030);
                             if (upstairs != null) {
                                 WebElement aUp = waitForElement(upstairs, By.cssSelector("a"));
                                 String userIdUp = aUp.getAttribute("href").split("=")[1];
@@ -85,7 +98,7 @@ public class NCMSongMonitor extends NCMMonitor<NCMCommentModel>{
                             logger.info("[getContent] line:{}, {}", count, ncmModel);
                             ncmModelList.add(ncmModel);
                         } else {
-                            WebElement upstairs = waitForElement(cntWrap, By.cssSelector("div.que.f-brk.f-pr.s-fc3"), 3 * 1000);
+                            WebElement upstairs = waitForElement(cntWrap, By.cssSelector("div.que.f-brk.f-pr.s-fc3"), 1030);
                             if (upstairs != null) {
                                 WebElement aUp = waitForElement(upstairs, By.cssSelector("a"));
                                 String userIdUp = aUp.getAttribute("href").split("=")[1];
@@ -117,12 +130,13 @@ public class NCMSongMonitor extends NCMMonitor<NCMCommentModel>{
                     }
                 }
             }
+            logger.info("[handle] size:{} ncmModelList:{}", ncmModelList.size(), ncmModelList);
+            ncmService.insert(ncmModelList);
         }
     }
 
     @Override
     protected void handle(Date date) {
-        logger.info("[handle] size:{} ncmModelList:{}", ncmModelList.size(), ncmModelList);
     }
 
     private Date calDate(String dateStr) {
@@ -162,10 +176,10 @@ public class NCMSongMonitor extends NCMMonitor<NCMCommentModel>{
             return new Date();
         }
     }
-
-    public static void main(String[] args) {
-        NCMSongMonitor ncmSongMonitor = new NCMSongMonitor(new ArrayList<String>(){{add("437250607"); add("19107212");}});
-        ncmSongMonitor.setUser("78364914");
-        ncmSongMonitor.task(new Date());
-    }
+//
+//    public static void main(String[] args) {
+//        NCMSongMonitor ncmSongMonitor = new NCMSongMonitor(new ArrayList<String>(){{add("437250607"); add("19107212");}});
+//        ncmSongMonitor.setUser("78364914");
+//        ncmSongMonitor.task(new Date());
+//    }
 }

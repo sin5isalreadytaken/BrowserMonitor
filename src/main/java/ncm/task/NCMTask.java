@@ -1,6 +1,7 @@
 package ncm.task;
 
 import ncm.monitor.NCMAllMonitor;
+import ncm.monitor.NCMSongMonitor;
 import ncm.monitor.NCMWeekMonitor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,9 +26,17 @@ public class NCMTask {
     private int period;
 
     @Autowired
-    public NCMTask(NCMWeekMonitor ncmWeekMonitor, NCMAllMonitor ncmAllMonitor) {
+    public NCMTask(NCMWeekMonitor ncmWeekMonitor, NCMAllMonitor ncmAllMonitor, final NCMSongMonitor ncmSongMonitor) {
         this.ncmWeekMonitor = ncmWeekMonitor;
         this.ncmAllMonitor = ncmAllMonitor;
+        Thread commentT = new Thread() {
+            @Override
+            public void run() {
+                ncmSongMonitor.task(new Date());
+            }
+        };
+        commentT.setDaemon(true);
+        commentT.start();
     }
 
     @Scheduled(cron = "${schedule.cronTab}")

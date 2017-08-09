@@ -1,5 +1,6 @@
 package ncm.monitor;
 
+import ncm.constant.NCMConstant;
 import ncm.model.NCMAllModel;
 import ncm.model.NCMWeekModel;
 import ncm.service.NCMWeekService;
@@ -100,6 +101,13 @@ public class NCMWeekMonitor extends NCMMonitor<NCMWeekModel> {
                     ncmModel.setDate(date);
                     ts.add(ncmModel);
                     logger.info("[getContent] rank:{}, {}", i + 1, ncmModel);
+                    if (!NCMConstant.songIds.contains(songId)) {
+                        try {
+                            NCMConstant.songIds.put(String.valueOf(songId));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }
@@ -154,20 +162,21 @@ public class NCMWeekMonitor extends NCMMonitor<NCMWeekModel> {
         }
         List<NCMWeekModel> lastNCMModelList = ncmService.findAllByDate(lastDate);
         double weight = 1.0;
-        if (lastNCMModelList != null) {
-            for (NCMWeekModel ncmModel:
-                    ts) {
-                long songId = ncmModel.getSongId();
-                for (NCMWeekModel lastNCMModel:
-                        lastNCMModelList) {
-                    if (songId == lastNCMModel.getSongId()) {
-                        if (ncmModel.getTimes() * weight < lastNCMModel.getTimes()) {
-                            weight += 0.5;
-                        }
-                    }
-                }
-            }
-        }
+        //todo week times 上下文
+//        if (lastNCMModelList != null) {
+//            for (NCMWeekModel ncmModel:
+//                    ts) {
+//                long songId = ncmModel.getSongId();
+//                for (NCMWeekModel lastNCMModel:
+//                        lastNCMModelList) {
+//                    if (songId == lastNCMModel.getSongId()) {
+//                        if (ncmModel.getTimes() * weight < lastNCMModel.getTimes()) {
+//                            weight += 0.5;
+//                        }
+//                    }
+//                }
+//            }
+//        }
         for (NCMWeekModel ncmModel:
                 ts) {
             ncmModel.settimes((int) Math.round(ncmModel.getTimes() * weight));
