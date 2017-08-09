@@ -154,6 +154,7 @@ public class NCMWeekMonitor extends NCMMonitor<NCMWeekModel> {
             }
         }
         minWidth = minWidth < ts.get(size - 1).getWidth() ? minWidth : ts.get(size - 1).getWidth();
+        minWidth = gcd((int) Math.round(ts.get(size - 1).getWidth()), (int) minWidth);
         for (NCMWeekModel ncmWeekModel:
                 ts) {
             int times = (int) Math.round(ncmWeekModel.getWidth() / minWidth);
@@ -181,6 +182,17 @@ public class NCMWeekMonitor extends NCMMonitor<NCMWeekModel> {
                 ts) {
             ncmModel.settimes((int) Math.round(ncmModel.getTimes() * weight));
         }
+    }
+
+    private int gcd(int a, int b) {
+        int c = a % b;
+        while(c!=0)
+        {
+            a=b;
+            b=c;
+            c=a%b;
+        }
+        return b;
     }
 
 }
