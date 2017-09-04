@@ -1,15 +1,18 @@
 package ncm.monitor;
 
 import ncm.config.Configure;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -23,6 +26,7 @@ public abstract class NCMMonitor<T> {
     protected WebDriver driver = null;
     protected boolean ready = false;
     protected int retry = 10;
+    private long defaultTimeout = 10 * 1000;
 
     @Value(value = "${schedule.recordUrl}")
     protected String url;
@@ -133,18 +137,19 @@ public abstract class NCMMonitor<T> {
         profile.setEnableNativeEvents(true);
         profile.setPreference("intl.charset.default", "UTF-8");
 //        profile.setPreference("general.useragent.override", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b9pre) Gecko/20101228 Firefox/4.0b9pre");
-        String path = NCMMonitor.class.getResource("/geckodriverAll/win64/geckodriver.exe").getPath();
-        System.setProperty("webdriver.gecko.driver", path);
+//        String path = NCMMonitor.class.getResource("/geckodriverAll/win64/geckodriver.exe").getPath();
+//        System.setProperty("webdriver.gecko.driver", path);
+        System.setProperty("webdriver.gecko.dirver", "/usr/ephemeral/manipulator/geckodriver");
         WebDriver webDriver = new FirefoxDriver(profile);
         return webDriver;
     }
 
     public WebElement waitForElement(WebElement we, By by) {
-        return waitForElement(we, by, 10 * 1000);
+        return waitForElement(we, by, defaultTimeout);
     }
 
     public WebElement waitForElement(By by) {
-        return waitForElement(by, 10 * 1000);
+        return waitForElement(by, defaultTimeout);
     }
 
     public WebElement waitForElement(By by, long lTimeout) {
@@ -188,7 +193,7 @@ public abstract class NCMMonitor<T> {
     }
 
     public List<WebElement> waitForElements(WebElement we, By by) {
-        return waitForElements(we, by, 10 * 1000);
+        return waitForElements(we, by, defaultTimeout);
     }
 
     public List<WebElement> waitForElements(WebElement we, By by, long lTimeout) {
@@ -232,7 +237,7 @@ public abstract class NCMMonitor<T> {
     }
 
     public List<WebElement> waitForElements(By by) {
-        return waitForElements(by, 10 * 1000);
+        return waitForElements(by, defaultTimeout);
     }
 
     public boolean checkUrl(String url) {
@@ -244,6 +249,66 @@ public abstract class NCMMonitor<T> {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    protected boolean waitForUrl(String strUrl) {
+        return waitForUrl(strUrl, defaultTimeout);
+    }
+
+    protected boolean waitForUrl(String strUrl, long lTimeout) {
+        long lStart = System.currentTimeMillis();
+        while (System.currentTimeMillis() - lStart < lTimeout) {
+            if (driver.getCurrentUrl().contains(strUrl)) {
+                logger.info("[waitForUrl] success at:{}", driver.getCurrentUrl());
+                return true;
+            } else {
+                try {
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                }
+            }
+        }
+        logger.info("[waitForUrl] wait for url:{} timeout at:{}", strUrl, driver.getCurrentUrl());
+        return false;
+    }
+
+    /**
+     * 获取指定元素的截图byte[]
+     */
+    protected byte[] captureElement(WebElement we) throws Exception {
+        BufferedImage bi = getElementImage(we);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ImageIO.write(bi, "png", bos);
+        return bos.toByteArray();
+    }
+
+    /**
+     * 获取指定元素的截图
+     */
+    protected BufferedImage getElementImage(WebElement we) {
+        Point location = we.getLocation();
+        Dimension size = we.getSize();
+        BufferedImage originalImage = null;
+        try {
+            originalImage = ImageIO.read(new ByteArrayInputStream(((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES)));
+        } catch (IOException e) {
+            logger.info("read img failed");
+        }
+        return originalImage.getSubimage(location.getX(), location.getY(), size.getWidth(), size.getHeight());
+    }
+
+    protected void executeJS(String js) {
+        JavascriptExecutor jse = (JavascriptExecutor) driver;
+        jse.executeScript(js);
+    }
+
+    protected void nonBlockingNavigate(String url) {
+        executeJS("window.location.href='" + url + "'");
+    }
+
+    protected void nonBlockingRefresh(String url) {
+        driver.navigate().to("http://www.baidu.com");
+        nonBlockingNavigate(url);
     }
 
 }

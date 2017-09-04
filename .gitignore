@@ -63,3 +63,4 @@ out/
 # NetBeans specific files/directories
 .nbattrs
 *.orig
+/src/test/

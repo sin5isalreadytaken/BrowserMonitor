@@ -3,29 +3,8 @@ spring:
     name: browser-ncm
   thymeleaf:
     cache: false
-  datasource:
-    url: jdbc:mysql://localhost:3306/browser?useUnicode=true&characterEncoding=UTF-8
-    username: root
-    password: sin5
-  jpa:
-    properties:
-      hibernate:
-        hbm2ddl:
-          auto: update
+  profiles:
+    active: @profileActive@
 
 server:
   context-path: /browser/ncm
-  port: 51111
-
-logging:
-  config: classpath:log4j2-test.xml
-
-# 每个整5分执行定时任务
-schedule:
-  cronTab: 0 0/5 * * * ?
-  rate: 300000
-#  cronTab: 0/30 * * * * ?
-#  rate: 30000
-  recordUrl: http://music.163.com/#/user/songs/rank?id=132674522
-#  user: 75317327
-  user: 132674522
