@@ -9,11 +9,11 @@ spring:
     url: jdbc:mysql://localhost:3306/browser?useUnicode=true&characterEncoding=UTF-8
     username: root
     password: sin5
-  jpa:
-    properties:
-      hibernate:
-        hbm2ddl:
-          auto: update
+#  jpa:
+#    properties:
+#      hibernate:
+#        hbm2ddl:
+#          auto: update
 
 
 # 每个整5分执行定时任务

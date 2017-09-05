@@ -139,7 +139,7 @@ public abstract class NCMMonitor<T> {
 //        profile.setPreference("general.useragent.override", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b9pre) Gecko/20101228 Firefox/4.0b9pre");
 //        String path = NCMMonitor.class.getResource("/geckodriverAll/win64/geckodriver.exe").getPath();
 //        System.setProperty("webdriver.gecko.driver", path);
-        System.setProperty("webdriver.gecko.dirver", "/usr/ephemeral/manipulator/geckodriver");
+        System.setProperty("webdriver.gecko.dirver", "/mnt/sin5files/homework/idea/geckodriver");
         WebDriver webDriver = new FirefoxDriver(profile);
         return webDriver;
     }

@@ -39,7 +39,8 @@ public class NCMTask {
         commentT.start();
     }
 
-    @Scheduled(cron = "${schedule.cronTab}")
+//    @Scheduled(cron = "${schedule.cronTab}")
+    @Scheduled(fixedRate = 3 * 60 * 1000)
     public void task() {
         ExecutorService fixedThreadPool = Executors.newFixedThreadPool(2);
         fixedThreadPool.execute(new Runnable() {
